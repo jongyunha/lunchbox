@@ -12,6 +12,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jongyunha/lunchbox/internal/config"
 	"github.com/jongyunha/lunchbox/internal/monolith"
+	"github.com/jongyunha/lunchbox/internal/postgres"
 	"github.com/jongyunha/lunchbox/internal/waiter"
 	"github.com/nats-io/nats.go"
 	"github.com/rs/zerolog"
@@ -29,6 +30,7 @@ type app struct {
 	mux     *chi.Mux
 	js      nats.JetStreamContext
 	waiter  waiter.Waiter
+	queries *postgres.Queries
 }
 
 func (a *app) Config() config.AppConfig {
@@ -55,8 +57,8 @@ func (a *app) Waiter() waiter.Waiter {
 	return a.waiter
 }
 
-func (a *app) DB() *pgxpool.Pool {
-	return a.dbPool
+func (a *app) DB() *postgres.Queries {
+	return a.queries
 }
 
 func (a *app) JS() nats.JetStreamContext {

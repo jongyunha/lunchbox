@@ -10,12 +10,14 @@ import (
 	"github.com/jongyunha/lunchbox/internal/monolith"
 	pg "github.com/jongyunha/lunchbox/internal/postgres"
 	"github.com/jongyunha/lunchbox/internal/registry"
+	"github.com/jongyunha/lunchbox/internal/registry/serdes"
 	"github.com/jongyunha/lunchbox/restaurants/internal/application"
 	"github.com/jongyunha/lunchbox/restaurants/internal/domain"
 	"github.com/jongyunha/lunchbox/restaurants/internal/grpc"
 	"github.com/jongyunha/lunchbox/restaurants/internal/handlers"
 	"github.com/jongyunha/lunchbox/restaurants/internal/logging"
 	"github.com/jongyunha/lunchbox/restaurants/internal/rest"
+	"github.com/jongyunha/lunchbox/restaurants/restaurantspb"
 )
 
 type Module struct{}
@@ -24,6 +26,9 @@ func (m *Module) Startup(ctx context.Context, mono monolith.Monolith) (err error
 	// setup Driven adapters
 	reg := registry.New()
 	if err = registrations(reg); err != nil {
+		return err
+	}
+	if err = restaurantspb.Registrations(reg); err != nil {
 		return err
 	}
 	eventStream := am.NewEventStream(reg, jetstream.NewStream(mono.Config().Nats.Stream, mono.JS(), mono.Logger()))
@@ -56,6 +61,27 @@ func (m *Module) Startup(ctx context.Context, mono monolith.Monolith) (err error
 	return nil
 }
 
-func registrations(_ registry.Registry) error {
-	return nil
+func registrations(reg registry.Registry) (err error) {
+	serde := serdes.NewJsonSerde(reg)
+
+	// Restaurant
+	if err = serde.Register(domain.Restaurant{}, func(v any) error {
+		restaurant := v.(*domain.Restaurant)
+		restaurant.Aggregate = es.NewAggregate("", domain.RestaurantAggregate)
+		return nil
+	}); err != nil {
+		return
+	}
+
+	// Restaurant events
+	if err = serde.Register(domain.RestaurantRegistered{}); err != nil {
+		return
+	}
+
+	// Restaurant snapshot
+	if err = serde.RegisterKey(domain.RestaurantV1{}.SnapshotName(), domain.RestaurantV1{}); err != nil {
+		return
+	}
+
+	return
 }

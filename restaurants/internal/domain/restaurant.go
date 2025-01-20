@@ -1,6 +1,8 @@
 package domain
 
 import (
+	"fmt"
+
 	"github.com/jongyunha/lunchbox/internal/ddd"
 	"github.com/jongyunha/lunchbox/internal/es"
 	"github.com/stackus/errors"
@@ -20,13 +22,18 @@ type Restaurant struct {
 }
 
 func (r Restaurant) ApplyEvent(event ddd.Event) error {
-	//TODO implement me
-	panic("implement me")
+	switch payload := event.Payload().(type) {
+	case RestaurantRegistered:
+		r.Name = payload.Name
+	default:
+		return errors.ErrInternal.Msgf("%T received the event %s with unexpected payload %T", r, event.EventName(), payload)
+	}
+
+	return nil
 }
 
 func (r Restaurant) CommitEvents() {
-	//TODO implement me
-	panic("implement me")
+	fmt.Println("Committing events")
 }
 
 func RegisterRestaurant(id, name string) (*Restaurant, error) {
@@ -35,7 +42,7 @@ func RegisterRestaurant(id, name string) (*Restaurant, error) {
 	}
 	restaurant := NewRestaurant(id)
 
-	restaurant.AddEvent(RestaurantRegisteredEvent, &RestaurantRegistered{
+	restaurant.AddEvent(RestaurantRegisteredEvent, RestaurantRegistered{
 		Name: name,
 	})
 
@@ -46,4 +53,8 @@ func NewRestaurant(id string) *Restaurant {
 	return &Restaurant{
 		Aggregate: es.NewAggregate(id, RestaurantAggregate),
 	}
+}
+
+func (Restaurant) Key() string {
+	return RestaurantAggregate
 }

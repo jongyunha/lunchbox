@@ -11,6 +11,7 @@ import (
 	"github.com/jongyunha/lunchbox/internal/config"
 	"github.com/jongyunha/lunchbox/internal/logger"
 	"github.com/jongyunha/lunchbox/internal/monolith"
+	"github.com/jongyunha/lunchbox/internal/postgres"
 	"github.com/jongyunha/lunchbox/internal/rpc"
 	"github.com/jongyunha/lunchbox/internal/waiter"
 	"github.com/jongyunha/lunchbox/internal/web"
@@ -55,6 +56,7 @@ func run() (err error) {
 		return err
 	}
 	m.dbPool = dbPool
+	m.queries = postgres.New(dbPool)
 	m.logger = initLogger(cfg)
 	m.rpc = initRpc(cfg.Rpc)
 	m.mux = initMux(cfg.Web)
