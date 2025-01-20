@@ -1,20 +1,6 @@
 version: "3.8"
 
 services:
-  monolith:
-    container_name: monolith
-    hostname: monolith
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
-    ports:
-      - '8080:8080'
-      - '8085:8085'
-    env_file:
-      - docker/.env
-    depends_on:
-      - postgres
-    command: [ "./wait-for", "postgres:5432", "--", "/lunchbox/monolith" ]
   postgres:
     container_name: postgres
     hostname: postgres
@@ -28,5 +14,19 @@ services:
       - 'pgdata:/var/lib/postgresql/data'
       - './docker/database:/docker-entrypoint-initdb.d'
 
+  nats:
+    container_name: nats
+    hostname: nats
+    image: nats:2-alpine
+    ports:
+      - '4222:4222'
+    command:
+      - -js
+      - -sd
+      - /var/lib/nats/data
+    volumes:
+      - 'jsdata:/var/lib/nats/data'
+
 volumes:
   pgdata:
+  jsdata:

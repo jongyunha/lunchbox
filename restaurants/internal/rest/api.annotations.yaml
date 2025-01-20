@@ -1,0 +1,7 @@
+type: google.api.Service
+config_version: 3
+http:
+  rules:
+    - selector: restaurantspb.RestaurantsService.RegisterRestaurant
+      post: /api/v1/restaurants
+      body: "*"

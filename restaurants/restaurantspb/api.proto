@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package restaurantspb;
+
+service RestaurantsService {
+  rpc RegisterRestaurant(RegisterRestaurantRequest) returns (RegisterRestaurantResponse);
+}
+
+message RegisterRestaurantRequest {
+  string name = 1;
+}
+
+message RegisterRestaurantResponse {
+  string id = 1;
+}

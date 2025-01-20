@@ -10,9 +10,12 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jongyunha/lunchbox/internal/config"
 	"github.com/jongyunha/lunchbox/internal/logger"
+	"github.com/jongyunha/lunchbox/internal/monolith"
 	"github.com/jongyunha/lunchbox/internal/rpc"
 	"github.com/jongyunha/lunchbox/internal/waiter"
 	"github.com/jongyunha/lunchbox/internal/web"
+	"github.com/jongyunha/lunchbox/restaurants"
+	"github.com/nats-io/nats.go"
 	"github.com/rs/zerolog"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -41,11 +44,32 @@ func run() (err error) {
 		dbPool.Close()
 	}()
 
+	m.nc, err = nats.Connect(cfg.Nats.URL)
+	if err != nil {
+		return err
+	}
+	defer m.nc.Close()
+
+	m.js, err = initJetStream(cfg.Nats, m.nc)
+	if err != nil {
+		return err
+	}
 	m.dbPool = dbPool
 	m.logger = initLogger(cfg)
 	m.rpc = initRpc(cfg.Rpc)
 	m.mux = initMux(cfg.Web)
 	m.waiter = waiter.New(waiter.CatchSignals())
+
+	m.modules = []monolith.Module{
+		&restaurants.Module{},
+	}
+
+	if err = m.startupModules(); err != nil {
+		return err
+	}
+
+	fmt.Println("lunchbox is running")
+	defer fmt.Println("lunchbox stopped")
 
 	m.Waiter().Add(
 		m.waitForWeb,
@@ -105,4 +129,18 @@ func initLogger(cfg config.AppConfig) zerolog.Logger {
 
 func initMux(_ web.WebConfig) *chi.Mux {
 	return chi.NewMux()
+}
+
+func initJetStream(cfg config.NatsConfig, nc *nats.Conn) (nats.JetStreamContext, error) {
+	js, err := nc.JetStream()
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = js.AddStream(&nats.StreamConfig{
+		Name:     cfg.Stream,
+		Subjects: []string{fmt.Sprintf("%s.>", cfg.Stream)},
+	})
+
+	return js, err
 }
