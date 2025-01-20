@@ -25,10 +25,16 @@ type (
 		HealthCheckPeriod int    `default:"60" envconfig:"PG_HEALTH_CHECK_PERIOD"`
 	}
 
+	NatsConfig struct {
+		URL    string `required:"true"`
+		Stream string `default:"lunchbox"`
+	}
+
 	AppConfig struct {
 		Environment     string
 		LogLevel        string `envconfig:"LOG_LEVEL" default:"DEBUG"`
 		PG              PGConfig
+		Nats            NatsConfig
 		Web             web.WebConfig
 		Rpc             rpc.RpcConfig
 		ShutdownTimeout time.Duration `envconfig:"SHUTDOWN_TIMEOUT" default:"30s"`

@@ -13,6 +13,7 @@ import (
 	"github.com/jongyunha/lunchbox/internal/config"
 	"github.com/jongyunha/lunchbox/internal/monolith"
 	"github.com/jongyunha/lunchbox/internal/waiter"
+	"github.com/nats-io/nats.go"
 	"github.com/rs/zerolog"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
@@ -21,10 +22,12 @@ import (
 type app struct {
 	cfg     config.AppConfig
 	dbPool  *pgxpool.Pool
+	nc      *nats.Conn
 	logger  zerolog.Logger
 	modules []monolith.Module
 	rpc     *grpc.Server
 	mux     *chi.Mux
+	js      nats.JetStreamContext
 	waiter  waiter.Waiter
 }
 
@@ -50,6 +53,14 @@ func (a *app) Mux() *chi.Mux {
 
 func (a *app) Waiter() waiter.Waiter {
 	return a.waiter
+}
+
+func (a *app) DB() *pgxpool.Pool {
+	return a.dbPool
+}
+
+func (a *app) JS() nats.JetStreamContext {
+	return a.js
 }
 
 func (a *app) waitForWeb(ctx context.Context) error {
@@ -80,6 +91,16 @@ func (a *app) waitForWeb(ctx context.Context) error {
 	})
 
 	return group.Wait()
+}
+
+func (a *app) startupModules() error {
+	for _, module := range a.modules {
+		if err := module.Startup(a.Waiter().Context(), a); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (a *app) waitForRPC(ctx context.Context) error {

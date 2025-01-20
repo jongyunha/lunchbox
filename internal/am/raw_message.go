@@ -1,7 +1,10 @@
 package am
 
 type (
-	RawMessageStream = MessageStream[RawMessage, IncomingRawMessage]
+	RawMessageStream     = MessageStream[RawMessage, IncomingRawMessage]
+	RawMessageHandler    = MessageHandler[IncomingRawMessage]
+	RawMessagePublisher  = MessagePublisher[RawMessage]
+	RawMessageSubscriber = MessageSubscriber[IncomingRawMessage]
 
 	RawMessage interface {
 		Message
