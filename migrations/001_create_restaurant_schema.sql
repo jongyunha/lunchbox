@@ -1,10 +1,7 @@
 -- +goose Up
 CREATE SCHEMA restaurants;
 
-SET
-SEARCH_PATH TO restaurants, PUBLIC;
-
-CREATE TABLE restaurants (
+CREATE TABLE restaurants.restaurants (
   id            text        NOT NULL,
   name          text        NOT NULL,
   created_at    timestamptz NOT NULL DEFAULT NOW(),
@@ -22,7 +19,7 @@ CREATE TRIGGER updated_at_restaurants_trgr
   ON restaurants
   FOR EACH ROW EXECUTE PROCEDURE updated_at_trigger();
 
-CREATE TABLE events (
+CREATE TABLE restaurants.events (
   stream_id      text        NOT NULL,
   stream_name    text        NOT NULL,
   stream_version int         NOT NULL,
@@ -33,7 +30,7 @@ CREATE TABLE events (
   PRIMARY KEY (stream_id, stream_name, stream_version)
 );
 
-CREATE TABLE snapshots (
+CREATE TABLE restaurants.snapshots (
   stream_id      text        NOT NULL,
   stream_name    text        NOT NULL,
   stream_version int         NOT NULL,

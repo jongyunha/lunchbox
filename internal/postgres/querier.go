@@ -12,6 +12,7 @@ type Querier interface {
 	LoadEvents(ctx context.Context, arg LoadEventsParams) ([]LoadEventsRow, error)
 	LoadSnapshot(ctx context.Context, arg LoadSnapshotParams) (LoadSnapshotRow, error)
 	SaveEvent(ctx context.Context, arg SaveEventParams) error
+	SaveRestaurant(ctx context.Context, arg SaveRestaurantParams) error
 	SaveSnapshot(ctx context.Context, arg SaveSnapshotParams) error
 }
 

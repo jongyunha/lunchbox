@@ -8,7 +8,7 @@ import (
 	"time"
 )
 
-type Event struct {
+type RestaurantsEvent struct {
 	StreamID      string    `json:"stream_id"`
 	StreamName    string    `json:"stream_name"`
 	StreamVersion int32     `json:"stream_version"`
@@ -18,14 +18,14 @@ type Event struct {
 	OccurredAt    time.Time `json:"occurred_at"`
 }
 
-type Restaurant struct {
+type RestaurantsRestaurant struct {
 	ID        string    `json:"id"`
 	Name      string    `json:"name"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
 
-type Snapshot struct {
+type RestaurantsSnapshot struct {
 	StreamID      string    `json:"stream_id"`
 	StreamName    string    `json:"stream_name"`
 	StreamVersion int32     `json:"stream_version"`

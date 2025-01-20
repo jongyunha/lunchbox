@@ -16,6 +16,7 @@ import (
 	"github.com/jongyunha/lunchbox/restaurants/internal/grpc"
 	"github.com/jongyunha/lunchbox/restaurants/internal/handlers"
 	"github.com/jongyunha/lunchbox/restaurants/internal/logging"
+	"github.com/jongyunha/lunchbox/restaurants/internal/postgres"
 	"github.com/jongyunha/lunchbox/restaurants/internal/rest"
 	"github.com/jongyunha/lunchbox/restaurants/restaurantspb"
 )
@@ -40,6 +41,7 @@ func (m *Module) Startup(ctx context.Context, mono monolith.Monolith) (err error
 	)
 
 	restaurants := es.NewAggregateRepository[*domain.Restaurant](domain.RestaurantAggregate, reg, aggregateStore)
+	mall := postgres.NewMallRepository(mono.DB())
 
 	// setup application
 	app := logging.LogApplicationAccess(
@@ -50,6 +52,10 @@ func (m *Module) Startup(ctx context.Context, mono monolith.Monolith) (err error
 		handlers.NewDomainEventHandlers(eventStream),
 		"DomainEvents", mono.Logger(),
 	)
+	mallHandlers := logging.LogEventHandlerAccess[ddd.AggregateEvent](
+		handlers.NewMallHandlers(mall),
+		"Mall", mono.Logger(),
+	)
 	// setup Driver adapters
 	if err = grpc.RegisterServer(ctx, app, mono.RPC()); err != nil {
 		return err
@@ -57,6 +63,7 @@ func (m *Module) Startup(ctx context.Context, mono monolith.Monolith) (err error
 	if err = rest.RegisterGateway(ctx, mono.Mux(), mono.Config().Rpc.Address()); err != nil {
 		return err
 	}
+	handlers.RegisterMallHandlers(mallHandlers, domainDispatcher)
 	handlers.RegisterDomainEventHandlers(domainDispatcher, domainEventHandlers)
 	return nil
 }

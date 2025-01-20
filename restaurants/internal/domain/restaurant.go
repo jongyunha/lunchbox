@@ -1,8 +1,6 @@
 package domain
 
 import (
-	"fmt"
-
 	"github.com/jongyunha/lunchbox/internal/ddd"
 	"github.com/jongyunha/lunchbox/internal/es"
 	"github.com/stackus/errors"
@@ -30,10 +28,6 @@ func (r Restaurant) ApplyEvent(event ddd.Event) error {
 	}
 
 	return nil
-}
-
-func (r Restaurant) CommitEvents() {
-	fmt.Println("Committing events")
 }
 
 func RegisterRestaurant(id, name string) (*Restaurant, error) {
