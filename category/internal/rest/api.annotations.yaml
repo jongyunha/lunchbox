@@ -1,0 +1,8 @@
+type: google.api.Service
+config_version: 3
+http:
+  rules:
+    - selector: categorypb.CategoryService.RegisterCategory
+      post: /api/v1/categories
+      body: "*"
+

@@ -3,11 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/jongyunha/lunchbox/category"
 	"github.com/jongyunha/lunchbox/internal/config"
 	"github.com/jongyunha/lunchbox/internal/logger"
 	"github.com/jongyunha/lunchbox/internal/monolith"
@@ -64,11 +66,16 @@ func run() (err error) {
 
 	m.modules = []monolith.Module{
 		&restaurants.Module{},
+		&category.Module{},
+		//&crawling.Module{},
 	}
 
 	if err = m.startupModules(); err != nil {
 		return err
 	}
+
+	webUi := http.FS(web.WebUI)
+	m.mux.Mount("/", http.FileServer(webUi))
 
 	fmt.Println("lunchbox is running")
 	defer fmt.Println("lunchbox stopped")

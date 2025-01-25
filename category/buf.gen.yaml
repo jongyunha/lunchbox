@@ -2,7 +2,7 @@ version: v1
 managed:
   enabled: true
   go_package_prefix:
-    default: github.com/jongyunha/lunchbox/restaurants/restaurantspb
+    default: github.com/jongyunha/lunchbox/category/categorypb
     except:
       - buf.build/googleapis/googleapis
 plugins:

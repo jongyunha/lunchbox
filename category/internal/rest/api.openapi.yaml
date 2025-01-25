@@ -1,0 +1,15 @@
+openapiOptions:
+  file:
+    - file: "categorypb/api.proto"
+      option:
+        info:
+          title: Category
+          version: "1.0.0"
+        basePath: /
+  method:
+    - method: categorypb.CategoryService.RegisterCategory
+      option:
+        operationId: createCategory
+        tags:
+          - Category
+        summary: Create a new category

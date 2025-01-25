@@ -1,0 +1,15 @@
+openapiOptions:
+  file:
+    - file: "restaurantspb/api.proto"
+      option:
+        info:
+          title: Restaurants
+          version: "1.0.0"
+        basePath: /
+  method:
+    - method: restaurantspb.RestaurantsService.RegisterRestaurant
+      option:
+        operationId: createRestaurant
+        tags:
+          - Restaurant
+        summary: Create a new restaurant

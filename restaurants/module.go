@@ -63,6 +63,9 @@ func (m *Module) Startup(ctx context.Context, mono monolith.Monolith) (err error
 	if err = rest.RegisterGateway(ctx, mono.Mux(), mono.Config().Rpc.Address()); err != nil {
 		return err
 	}
+	if err = rest.RegisterSwagger(mono.Mux()); err != nil {
+		return err
+	}
 	handlers.RegisterMallHandlers(mallHandlers, domainDispatcher)
 	handlers.RegisterDomainEventHandlers(domainDispatcher, domainEventHandlers)
 	return nil

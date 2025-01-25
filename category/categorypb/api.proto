@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package categorypb;
+
+service CategoryService {
+  rpc RegisterCategory(RegisterCategoryRequest) returns (RegisterCategoryResponse) {};
+}
+
+message RegisterCategoryRequest {
+  string name = 1;
+}
+
+message RegisterCategoryResponse {
+  string id = 1;
+}

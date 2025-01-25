@@ -1,12 +1,12 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "Restaurants",
+    "title": "Category",
     "version": "1.0.0"
   },
   "tags": [
     {
-      "name": "RestaurantsService"
+      "name": "CategoryService"
     }
   ],
   "basePath": "/",
@@ -17,15 +17,15 @@
     "application/json"
   ],
   "paths": {
-    "/api/v1/restaurants": {
+    "/api/v1/categories": {
       "post": {
-        "summary": "Create a new restaurant",
-        "operationId": "createRestaurant",
+        "summary": "Create a new category",
+        "operationId": "createCategory",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/restaurantspbRegisterRestaurantResponse"
+              "$ref": "#/definitions/categorypbRegisterCategoryResponse"
             }
           },
           "default": {
@@ -41,17 +41,33 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/restaurantspbRegisterRestaurantRequest"
+              "$ref": "#/definitions/categorypbRegisterCategoryRequest"
             }
           }
         ],
         "tags": [
-          "Restaurant"
+          "Category"
         ]
       }
     }
   },
   "definitions": {
+    "categorypbRegisterCategoryRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "categorypbRegisterCategoryResponse": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        }
+      }
+    },
     "protobufAny": {
       "type": "object",
       "properties": {
@@ -60,22 +76,6 @@
         }
       },
       "additionalProperties": {}
-    },
-    "restaurantspbRegisterRestaurantRequest": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        }
-      }
-    },
-    "restaurantspbRegisterRestaurantResponse": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string"
-        }
-      }
     },
     "rpcStatus": {
       "type": "object",

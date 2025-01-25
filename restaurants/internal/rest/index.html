@@ -9,7 +9,7 @@
 	<link rel="icon" type="image/png" href="/swagger-ui/favicon-16x16.png" sizes="16x16"/>
 	<style>
 		html {
-			box-sizing: border-box;
+			box-sizing: bcustomer-box;
 			overflow: -moz-scrollbars-vertical;
 			overflow-y: scroll;
 		}
@@ -36,15 +36,7 @@
 	window.onload = function () {
 		// Begin Swagger UI call region
 		const ui = SwaggerUIBundle({
-			urls: [
-				{name: "Categories", url: "category-spec/api.swagger.json"},
-				{name: "Restaurants", url: "restaurants-spec/api.swagger.json"},
-				// {name: "Order Processing", url: "ordering-spec/api.swagger.json"},
-				// {name: "Order Search", url: "search-spec/api.swagger.json"},
-				// {name: "Payments", url: "payments-spec/api.swagger.json"},
-				// {name: "Store Management", url: "stores-spec/api.swagger.json"},
-				// {name: "Shopping Baskets", url: "baskets-spec/api.swagger.json"},
-			],
+			url: "api.swagger.json",
 			dom_id: '#swagger-ui',
 			deepLinking: true,
 			presets: [
