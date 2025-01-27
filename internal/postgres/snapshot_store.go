@@ -19,9 +19,9 @@ type SnapshotStore struct {
 
 var _ es.AggregateStore = (*SnapshotStore)(nil)
 
-func NewSnapshotStore(tableName string, queries *Queries, registry registry.Registry) es.AggregateStoreMiddleware {
+func NewSnapshotStore(tableName string, db DBTX, registry registry.Registry) es.AggregateStoreMiddleware {
 	snapshots := SnapshotStore{
-		queries:   queries,
+		queries:   New(db),
 		registry:  registry,
 		tableName: tableName,
 	}

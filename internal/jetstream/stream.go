@@ -10,6 +10,8 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+const ContainerKey = "container.stream"
+
 const maxRetries = 5
 
 type Stream struct {

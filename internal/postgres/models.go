@@ -6,6 +6,8 @@ package postgres
 
 import (
 	"time"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type RestaurantsEvent struct {
@@ -16,6 +18,22 @@ type RestaurantsEvent struct {
 	EventName     string    `json:"event_name"`
 	EventData     []byte    `json:"event_data"`
 	OccurredAt    time.Time `json:"occurred_at"`
+}
+
+type RestaurantsInbox struct {
+	ID         string    `json:"id"`
+	Name       string    `json:"name"`
+	Subject    string    `json:"subject"`
+	Data       []byte    `json:"data"`
+	ReceivedAt time.Time `json:"received_at"`
+}
+
+type RestaurantsOutbox struct {
+	ID          string             `json:"id"`
+	Name        string             `json:"name"`
+	Subject     string             `json:"subject"`
+	Data        []byte             `json:"data"`
+	PublishedAt pgtype.Timestamptz `json:"published_at"`
 }
 
 type RestaurantsRestaurant struct {

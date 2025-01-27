@@ -214,6 +214,7 @@ func (c commandMessage) ID() string                  { return c.id }
 func (c commandMessage) CommandName() string         { return c.name }
 func (c commandMessage) Payload() ddd.CommandPayload { return c.payload }
 func (c commandMessage) Metadata() ddd.Metadata      { return c.metadata }
+func (c commandMessage) Subject() string             { return c.msg.Subject() }
 func (c commandMessage) OccurredAt() time.Time       { return c.occurredAt }
 func (c commandMessage) MessageName() string         { return c.msg.MessageName() }
 func (c commandMessage) Ack() error                  { return c.msg.Ack() }

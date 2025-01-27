@@ -45,3 +45,23 @@ CREATE TRIGGER updated_at_snapshots_trgr
   ON snapshots
   FOR EACH ROW EXECUTE PROCEDURE updated_at_trigger();
 
+
+CREATE TABLE restaurants.inbox (
+  id          text        NOT NULL,
+  name        text        NOT NULL,
+  subject     text        NOT NULL,
+  data        bytea       NOT NULL,
+  received_at timestamptz NOT NULL,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE restaurants.outbox (
+  id           text  NOT NULL,
+  name         text  NOT NULL,
+  subject      text  NOT NULL,
+  data         bytea NOT NULL,
+  published_at timestamptz,
+  PRIMARY KEY (id)
+);
+
+CREATE INDEX restaurants_unpublished_idx ON restaurants.outbox (published_at) WHERE published_at IS NULL;

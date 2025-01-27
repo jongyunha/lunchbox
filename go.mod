@@ -6,10 +6,10 @@ require (
 	github.com/go-chi/chi/v5 v5.2.0
 	github.com/google/uuid v1.6.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.25.1
+	github.com/jackc/pgerrcode v0.0.0-20240316143900-6e2875d9b438
 	github.com/jackc/pgx/v5 v5.7.2
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/nats-io/nats.go v1.38.0
-	github.com/playwright-community/playwright-go v0.4902.0
 	github.com/rs/zerolog v1.33.0
 	github.com/stackus/dotenv v0.0.0-20221206033122-02295762494b
 	github.com/stackus/errors v0.1.7
@@ -20,9 +20,6 @@ require (
 )
 
 require (
-	github.com/deckarep/golang-set/v2 v2.7.0 // indirect
-	github.com/go-jose/go-jose/v3 v3.0.3 // indirect
-	github.com/go-stack/stack v1.8.1 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
 	github.com/jackc/puddle/v2 v2.2.2 // indirect
@@ -34,6 +31,7 @@ require (
 	github.com/nats-io/nuid v1.0.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rogpeppe/go-internal v1.13.1 // indirect
+	github.com/stretchr/testify v1.8.4 // indirect
 	golang.org/x/crypto v0.31.0 // indirect
 	golang.org/x/net v0.33.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect

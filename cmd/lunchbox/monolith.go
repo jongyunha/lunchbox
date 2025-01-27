@@ -57,8 +57,8 @@ func (a *app) Waiter() waiter.Waiter {
 	return a.waiter
 }
 
-func (a *app) DB() *postgres.Queries {
-	return a.queries
+func (a *app) DB() *pgxpool.Pool {
+	return a.dbPool
 }
 
 func (a *app) JS() nats.JetStreamContext {

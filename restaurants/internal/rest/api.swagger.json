@@ -65,7 +65,8 @@
       "type": "object",
       "properties": {
         "name": {
-          "type": "string"
+          "type": "string",
+          "title": "string category_id = 2;\n  string description = 3;\n  RestaurantAddress address = 4;\n  repeated RestaurantImage images = 5;\n  repeated RestaurantMenu menu = 6;"
         }
       }
     },

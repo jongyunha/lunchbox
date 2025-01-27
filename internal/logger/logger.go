@@ -7,6 +7,8 @@ import (
 	"github.com/rs/zerolog/pkgerrors"
 )
 
+const ContainerKey = "container.logger"
+
 type Level string
 
 type LogConfig struct {

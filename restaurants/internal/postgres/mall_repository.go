@@ -13,9 +13,9 @@ type MallRepository struct {
 
 var _ domain.MallRepository = (*MallRepository)(nil)
 
-func NewMallRepository(queries *postgres.Queries) MallRepository {
+func NewMallRepository(db postgres.DBTX) MallRepository {
 	return MallRepository{
-		queries: queries,
+		queries: postgres.New(db),
 	}
 }
 

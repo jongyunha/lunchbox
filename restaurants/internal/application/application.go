@@ -35,7 +35,9 @@ type (
 
 var _ App = (*Application)(nil)
 
-func New(restaurants domain.RestaurantRepository) *Application {
+func New(
+	restaurants domain.RestaurantRepository,
+) *Application {
 	return &Application{
 		appCommands: appCommands{
 			RegisterRestaurantHandler: commands.NewRegisterRestaurantHandler(restaurants),

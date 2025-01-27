@@ -8,8 +8,45 @@ service RestaurantsService {
 
 message RegisterRestaurantRequest {
   string name = 1;
+//  string category_id = 2;
+//  string description = 3;
+//  RestaurantAddress address = 4;
+//  repeated RestaurantImage images = 5;
+//  repeated RestaurantMenu menu = 6;
 }
 
 message RegisterRestaurantResponse {
   string id = 1;
 }
+
+//message RestaurantImage {
+//  string url = 1;
+//}
+//
+//message RestaurantMenu {
+//  string name = 1;
+//  string description = 2;
+//  double price = 3;
+//  repeated RestaurantMenuImage images = 4;
+//}
+//
+//message RestaurantAddress {
+//  string address_1 = 1;
+//  string address_2 = 2;
+//  string longitude = 3;
+//  string latitude = 4;
+//}
+//
+//message RestaurantMenuImage {
+//  string url = 1;
+//}
+//
+//message RestaurantBusinessHours {
+//  string day = 1;
+//  string open_time = 2;
+//  string close_time = 3;
+//}
+//
+//message RestaurantContact {
+//  string phone = 1;
+//}

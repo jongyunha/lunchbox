@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/jongyunha/lunchbox/internal/ddd"
+	"github.com/jongyunha/lunchbox/internal/di"
 	"github.com/jongyunha/lunchbox/restaurants/internal/domain"
 )
 
@@ -34,4 +35,15 @@ func (h MallHandlers[T]) onRestaurantRegistered(ctx context.Context, event ddd.A
 
 func RegisterMallHandlers(mallHandlers ddd.EventHandler[ddd.AggregateEvent], subscriber ddd.EventSubscriber[ddd.AggregateEvent]) {
 	subscriber.Subscribe(mallHandlers, domain.RestaurantRegisteredEvent)
+}
+
+func RegisterMallHandlersTx(container di.Container) {
+	handlers := ddd.EventHandlerFunc[ddd.AggregateEvent](func(ctx context.Context, event ddd.AggregateEvent) error {
+		mallHandlers := di.Get(ctx, "mallHandlers").(ddd.EventHandler[ddd.AggregateEvent])
+
+		return mallHandlers.HandleEvent(ctx, event)
+	})
+
+	subscriber := container.Get(ddd.DomainDispatcherContainerKey).(*ddd.EventDispatcher[ddd.AggregateEvent])
+	RegisterMallHandlers(handlers, subscriber)
 }

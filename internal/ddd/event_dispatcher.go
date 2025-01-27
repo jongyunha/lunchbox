@@ -5,6 +5,8 @@ import (
 	"sync"
 )
 
+const DomainDispatcherContainerKey = "container.domain_dispatcher"
+
 type (
 	EventHandler[T Event] interface {
 		HandleEvent(ctx context.Context, event T) error

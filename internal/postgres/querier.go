@@ -9,10 +9,14 @@ import (
 )
 
 type Querier interface {
+	FindRestaurantUnpublishedOutboxMessages(ctx context.Context, limit int32) ([]FindRestaurantUnpublishedOutboxMessagesRow, error)
 	LoadEvents(ctx context.Context, arg LoadEventsParams) ([]LoadEventsRow, error)
 	LoadSnapshot(ctx context.Context, arg LoadSnapshotParams) (LoadSnapshotRow, error)
+	MarkRestaurantOutboxMessageAsPublishedByIDs(ctx context.Context, dollar_1 []string) error
 	SaveEvent(ctx context.Context, arg SaveEventParams) error
 	SaveRestaurant(ctx context.Context, arg SaveRestaurantParams) error
+	SaveRestaurantInboxMessage(ctx context.Context, arg SaveRestaurantInboxMessageParams) (string, error)
+	SaveRestaurantOutboxMessage(ctx context.Context, arg SaveRestaurantOutboxMessageParams) (string, error)
 	SaveSnapshot(ctx context.Context, arg SaveSnapshotParams) error
 }
 

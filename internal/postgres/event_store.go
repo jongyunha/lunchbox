@@ -4,26 +4,23 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/jackc/pgx/v5"
 	"github.com/jongyunha/lunchbox/internal/es"
 	"github.com/jongyunha/lunchbox/internal/registry"
 )
 
 type EventStore struct {
-	tableName          string
-	queries            *Queries
-	transactionManager TransactionManager
-	registry           registry.Registry
+	tableName string
+	queries   *Queries
+	registry  registry.Registry
 }
 
 var _ es.AggregateStore = (*EventStore)(nil)
 
-func NewEventStore(tableName string, queries *Queries, registry registry.Registry) EventStore {
+func NewEventStore(tableName string, db DBTX, registry registry.Registry) EventStore {
 	return EventStore{
-		tableName:          tableName,
-		queries:            queries,
-		registry:           registry,
-		transactionManager: NewTransactionManager(queries.db),
+		tableName: tableName,
+		queries:   New(db),
+		registry:  registry,
 	}
 }
 
@@ -65,40 +62,37 @@ func (s EventStore) Load(ctx context.Context, aggregate es.EventSourcedAggregate
 }
 
 func (s EventStore) Save(ctx context.Context, aggregate es.EventSourcedAggregate) (err error) {
-	err = s.transactionManager.WithinTransaction(ctx, func(tx pgx.Tx) error {
-		aggregateID := aggregate.ID()
-		aggregateName := aggregate.AggregateName()
+	aggregateID := aggregate.ID()
+	aggregateName := aggregate.AggregateName()
 
-		for _, event := range aggregate.Events() {
-			payloadData, err := s.registry.Serialize(event.EventName(), event.Payload())
-			if err != nil {
-				return err
-			}
-
-			params := SaveEventParams{
-				StreamID:      aggregateID,
-				StreamName:    aggregateName,
-				StreamVersion: int32(event.AggregateVersion()),
-				EventID:       event.ID(),
-				EventName:     event.EventName(),
-				EventData:     payloadData,
-				OccurredAt:    event.OccurredAt(),
-			}
-			if err = s.saveEvent(ctx, tx, params); err != nil {
-				return err
-			}
+	for _, event := range aggregate.Events() {
+		payloadData, err := s.registry.Serialize(event.EventName(), event.Payload())
+		if err != nil {
+			return err
 		}
-		return nil
-	})
-	return err
+
+		params := SaveEventParams{
+			StreamID:      aggregateID,
+			StreamName:    aggregateName,
+			StreamVersion: int32(event.AggregateVersion()),
+			EventID:       event.ID(),
+			EventName:     event.EventName(),
+			EventData:     payloadData,
+			OccurredAt:    event.OccurredAt(),
+		}
+		if err = s.saveEvent(ctx, params); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
-func (s EventStore) saveEvent(ctx context.Context, tx pgx.Tx, params SaveEventParams) error {
+func (s EventStore) saveEvent(ctx context.Context, params SaveEventParams) error {
 	query := fmt.Sprintf(`
 		INSERT INTO %s (stream_id, stream_name, stream_version, event_id, event_name, event_data, occurred_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7);`, s.tableName)
 
-	_, err := tx.Exec(ctx, query,
+	_, err := s.queries.db.Exec(ctx, query,
 		params.StreamID, params.StreamName, params.StreamVersion,
 		params.EventID, params.EventName, params.EventData, params.OccurredAt)
 	return err

@@ -5,6 +5,7 @@ import "github.com/jongyunha/lunchbox/internal/am"
 type rawMessage struct {
 	id       string
 	name     string
+	subject  string
 	data     []byte
 	acked    bool
 	ackFn    func() error
@@ -46,4 +47,8 @@ func (m *rawMessage) Kill() error {
 
 	m.acked = true
 	return m.killFn()
+}
+
+func (m rawMessage) Subject() string {
+	return m.subject
 }

@@ -132,6 +132,7 @@ func (e eventMessage) ID() string                { return e.id }
 func (e eventMessage) EventName() string         { return e.name }
 func (e eventMessage) Payload() ddd.EventPayload { return e.payload }
 func (e eventMessage) Metadata() ddd.Metadata    { return e.metadata }
+func (e eventMessage) Subject() string           { return e.msg.Subject() }
 func (e eventMessage) OccurredAt() time.Time     { return e.occurredAt }
 func (e eventMessage) MessageName() string       { return e.msg.MessageName() }
 func (e eventMessage) Ack() error                { return e.msg.Ack() }

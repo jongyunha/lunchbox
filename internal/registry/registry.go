@@ -2,6 +2,8 @@ package registry
 
 import "sync"
 
+const ContainerKey = "container.registry"
+
 type (
 	Registrable interface {
 		Key() string

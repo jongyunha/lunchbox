@@ -139,6 +139,7 @@ func (r replyMessage) ID() string                { return r.id }
 func (r replyMessage) ReplyName() string         { return r.name }
 func (r replyMessage) Payload() ddd.ReplyPayload { return r.payload }
 func (r replyMessage) Metadata() ddd.Metadata    { return r.metadata }
+func (r replyMessage) Subject() string           { return r.msg.Subject() }
 func (r replyMessage) OccurredAt() time.Time     { return r.occurredAt }
 func (r replyMessage) MessageName() string       { return r.msg.MessageName() }
 func (r replyMessage) Ack() error                { return r.msg.Ack() }
