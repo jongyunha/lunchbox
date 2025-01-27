@@ -1,4 +1,27 @@
 -- +goose Up
+CREATE OR REPLACE FUNCTION created_at_trigger()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.created_at IS NULL THEN
+    NEW.created_at := NOW();
+  ELSE
+    NEW.created_at := OLD.created_at;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION updated_at_trigger()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF row(NEW.*) IS DISTINCT FROM row(OLD.*) THEN
+    NEW.updated_at := NOW();
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+
 CREATE SCHEMA restaurants;
 
 CREATE TABLE restaurants.restaurants (
@@ -11,12 +34,12 @@ CREATE TABLE restaurants.restaurants (
 
 CREATE TRIGGER created_at_restaurants_trgr
   BEFORE UPDATE
-  ON restaurants
+  ON restaurants.restaurants
   FOR EACH ROW EXECUTE PROCEDURE created_at_trigger();
 
 CREATE TRIGGER updated_at_restaurants_trgr
   BEFORE UPDATE
-  ON restaurants
+  ON restaurants.restaurants
   FOR EACH ROW EXECUTE PROCEDURE updated_at_trigger();
 
 CREATE TABLE restaurants.events (
@@ -42,7 +65,7 @@ CREATE TABLE restaurants.snapshots (
 
 CREATE TRIGGER updated_at_snapshots_trgr
   BEFORE UPDATE
-  ON snapshots
+  ON restaurants.snapshots
   FOR EACH ROW EXECUTE PROCEDURE updated_at_trigger();
 
 

@@ -46,7 +46,7 @@ var _ EventMessage = (*eventMessage)(nil)
 var _ EventStream = (*eventStream)(nil)
 
 func NewEventStream(reg registry.Registry, stream RawMessageStream) EventStream {
-	return &eventStream{
+	return eventStream{
 		reg:    reg,
 		stream: stream,
 	}
@@ -58,9 +58,7 @@ func (s eventStream) Publish(ctx context.Context, topicName string, event ddd.Ev
 		return err
 	}
 
-	payload, err := s.reg.Serialize(
-		event.EventName(), event.Payload(),
-	)
+	payload, err := s.reg.Serialize(event.EventName(), event.Payload())
 	if err != nil {
 		return err
 	}
@@ -75,13 +73,14 @@ func (s eventStream) Publish(ctx context.Context, topicName string, event ddd.Ev
 	}
 
 	return s.stream.Publish(ctx, topicName, rawMessage{
-		id:   event.ID(),
-		name: event.EventName(),
-		data: data,
+		id:      event.ID(),
+		name:    event.EventName(),
+		subject: topicName,
+		data:    data,
 	})
 }
 
-func (s eventStream) Subscribe(topicName string, handler MessageHandler[IncomingEventMessage], options ...SubscriberOption) error {
+func (s eventStream) Subscribe(topicName string, handler MessageHandler[IncomingEventMessage], options ...SubscriberOption) (Subscription, error) {
 	cfg := NewSubscriberConfig(options)
 
 	var filters map[string]struct{}
@@ -126,6 +125,10 @@ func (s eventStream) Subscribe(topicName string, handler MessageHandler[Incoming
 	})
 
 	return s.stream.Subscribe(topicName, fn, options...)
+}
+
+func (e eventStream) Unsubscribe() error {
+	return e.stream.Unsubscribe()
 }
 
 func (e eventMessage) ID() string                { return e.id }

@@ -7,4 +7,4 @@ SELECT id, name, subject, data FROM restaurants.outbox WHERE published_at IS NUL
 -- name: MarkRestaurantOutboxMessageAsPublishedByIDs :exec
 UPDATE restaurants.outbox
 SET published_at = CURRENT_TIMESTAMP
-WHERE id = ANY($1::string[]);
+WHERE id = ANY($1::text[]);

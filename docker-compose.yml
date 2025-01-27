@@ -26,7 +26,13 @@ services:
       - /var/lib/nats/data
     volumes:
       - 'jsdata:/var/lib/nats/data'
+    networks:
+      - lunchbox
+
 
 volumes:
   pgdata:
   jsdata:
+
+networks:
+  lunchbox:

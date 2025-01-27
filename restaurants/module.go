@@ -110,7 +110,7 @@ func (m *Module) Startup(ctx context.Context, mono monolith.Monolith) (err error
 	// setup application
 	container.AddScoped("app", func(c di.Container) (any, error) {
 		return logging.LogApplicationAccess(
-			application.New(c.Get("restaurants").(*es.AggregateRepository[*domain.Restaurant])),
+			application.New(c.Get("restaurants").(es.AggregateRepository[*domain.Restaurant])),
 			c.Get(logger.ContainerKey).(zerolog.Logger),
 		), nil
 	})
@@ -124,7 +124,7 @@ func (m *Module) Startup(ctx context.Context, mono monolith.Monolith) (err error
 
 	container.AddScoped("mallHandlers", func(c di.Container) (any, error) {
 		return logging.LogEventHandlerAccess[ddd.AggregateEvent](
-			handlers.NewMallHandlers(c.Get("mall").(*postgres.MallRepository)),
+			handlers.NewMallHandlers(c.Get("mall").(postgres.MallRepository)),
 			"Mall", c.Get(logger.ContainerKey).(zerolog.Logger),
 		), nil
 	})
@@ -141,6 +141,7 @@ func (m *Module) Startup(ctx context.Context, mono monolith.Monolith) (err error
 	}
 	handlers.RegisterMallHandlersTx(container)
 	handlers.RegisterDomainEventHandlersTx(container)
+	startOutboxProcessor(ctx, container)
 	return nil
 }
 
@@ -166,4 +167,14 @@ func registrations(reg registry.Registry) (err error) {
 		return
 	}
 	return nil
+}
+
+func startOutboxProcessor(ctx context.Context, container di.Container) {
+	processor := container.Get(tm.OutboxProcessorContainerKey).(tm.OutboxProcessor)
+	logger := container.Get(logger.ContainerKey).(zerolog.Logger)
+	go func() {
+		if err := processor.Start(ctx); err != nil {
+			logger.Error().Err(err).Msg("OutboxProcessor failed")
+		}
+	}()
 }

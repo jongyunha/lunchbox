@@ -48,7 +48,7 @@ func (q *Queries) FindRestaurantUnpublishedOutboxMessages(ctx context.Context, l
 const markRestaurantOutboxMessageAsPublishedByIDs = `-- name: MarkRestaurantOutboxMessageAsPublishedByIDs :exec
 UPDATE restaurants.outbox
 SET published_at = CURRENT_TIMESTAMP
-WHERE id = ANY($1::string[])
+WHERE id = ANY($1::text[])
 `
 
 func (q *Queries) MarkRestaurantOutboxMessageAsPublishedByIDs(ctx context.Context, dollar_1 []string) error {

@@ -1,6 +1,8 @@
 package am
 
-import "time"
+import (
+	"time"
+)
 
 type AckType int
 
@@ -9,7 +11,7 @@ const (
 	AckTypeManual
 )
 
-var defaultAckWait = 5 * time.Second
+var defaultAckWait = 30 * time.Second
 var defaultMaxRedeliver = 5
 
 type SubscriberConfig struct {
@@ -68,8 +70,8 @@ func (s MessageFilter) configureSubscriberConfig(cfg *SubscriberConfig) {
 
 type GroupName string
 
-func (s GroupName) configureSubscriberConfig(cfg *SubscriberConfig) {
-	cfg.groupName = string(s)
+func (n GroupName) configureSubscriberConfig(cfg *SubscriberConfig) {
+	cfg.groupName = string(n)
 }
 
 func (t AckType) configureSubscriberConfig(cfg *SubscriberConfig) {

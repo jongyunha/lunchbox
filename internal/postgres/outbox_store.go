@@ -75,17 +75,17 @@ func (o OutboxStore) MarkPublished(ctx context.Context, ids ...string) error {
 }
 
 func (r outboxMessage) MessageName() string {
-	return r.MessageName()
+	return r.name
 }
 
 func (r outboxMessage) Subject() string {
-	return r.Subject()
+	return r.subject
 }
 
 func (r outboxMessage) Data() []byte {
-	return r.Data()
+	return r.data
 }
 
 func (r outboxMessage) ID() string {
-	return r.ID()
+	return r.id
 }
