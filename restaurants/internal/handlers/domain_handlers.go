@@ -10,14 +10,14 @@ import (
 	"github.com/jongyunha/lunchbox/restaurants/restaurantspb"
 )
 
-type domainHandlers[T ddd.AggregateEvent] struct {
-	publisher am.MessagePublisher[ddd.Event]
+type domainHandlers[T ddd.Event] struct {
+	publisher am.EventPublisher
 }
 
-var _ ddd.EventHandler[ddd.AggregateEvent] = (*domainHandlers[ddd.AggregateEvent])(nil)
+var _ ddd.EventHandler[ddd.Event] = (*domainHandlers[ddd.Event])(nil)
 
-func NewDomainEventHandlers(publisher am.MessagePublisher[ddd.Event]) ddd.EventHandler[ddd.AggregateEvent] {
-	return &domainHandlers[ddd.AggregateEvent]{
+func NewDomainEventHandlers(publisher am.EventPublisher) ddd.EventHandler[ddd.Event] {
+	return &domainHandlers[ddd.Event]{
 		publisher: publisher,
 	}
 }
@@ -48,11 +48,11 @@ func (d domainHandlers[T]) HandleEvent(ctx context.Context, event T) error {
 }
 
 func (d domainHandlers[T]) onRestaurantRegistered(ctx context.Context, event T) error {
-	payload := event.Payload().(domain.RestaurantRegistered)
+	payload := event.Payload().(domain.Restaurant)
 	return d.publisher.Publish(ctx, restaurantspb.RestaurantAggregateChannel, ddd.NewEvent(
 		restaurantspb.RestaurantRegisteredEvent,
 		&restaurantspb.RestaurantRegistered{
-			Id:   event.AggregateID(),
+			Id:   event.ID(),
 			Name: payload.Name,
 		},
 	))

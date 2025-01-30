@@ -7,17 +7,20 @@ package postgres
 
 import (
 	"context"
+	"time"
 )
 
 const findRestaurantUnpublishedOutboxMessages = `-- name: FindRestaurantUnpublishedOutboxMessages :many
-SELECT id, name, subject, data FROM restaurants.outbox WHERE published_at IS NULL LIMIT $1
+SELECT id, name, subject, data, metadata, sent_at FROM restaurants.outbox WHERE published_at IS NULL LIMIT $1
 `
 
 type FindRestaurantUnpublishedOutboxMessagesRow struct {
-	ID      string `json:"id"`
-	Name    string `json:"name"`
-	Subject string `json:"subject"`
-	Data    []byte `json:"data"`
+	ID       string    `json:"id"`
+	Name     string    `json:"name"`
+	Subject  string    `json:"subject"`
+	Data     []byte    `json:"data"`
+	Metadata []byte    `json:"metadata"`
+	SentAt   time.Time `json:"sent_at"`
 }
 
 func (q *Queries) FindRestaurantUnpublishedOutboxMessages(ctx context.Context, limit int32) ([]FindRestaurantUnpublishedOutboxMessagesRow, error) {
@@ -34,6 +37,8 @@ func (q *Queries) FindRestaurantUnpublishedOutboxMessages(ctx context.Context, l
 			&i.Name,
 			&i.Subject,
 			&i.Data,
+			&i.Metadata,
+			&i.SentAt,
 		); err != nil {
 			return nil, err
 		}
@@ -57,14 +62,16 @@ func (q *Queries) MarkRestaurantOutboxMessageAsPublishedByIDs(ctx context.Contex
 }
 
 const saveRestaurantOutboxMessage = `-- name: SaveRestaurantOutboxMessage :one
-INSERT INTO restaurants.outbox (id, name, subject, data) VALUES ($1, $2, $3, $4) RETURNING id
+INSERT INTO restaurants.outbox (id, name, subject, data, metadata, sent_at) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id
 `
 
 type SaveRestaurantOutboxMessageParams struct {
-	ID      string `json:"id"`
-	Name    string `json:"name"`
-	Subject string `json:"subject"`
-	Data    []byte `json:"data"`
+	ID       string    `json:"id"`
+	Name     string    `json:"name"`
+	Subject  string    `json:"subject"`
+	Data     []byte    `json:"data"`
+	Metadata []byte    `json:"metadata"`
+	SentAt   time.Time `json:"sent_at"`
 }
 
 func (q *Queries) SaveRestaurantOutboxMessage(ctx context.Context, arg SaveRestaurantOutboxMessageParams) (string, error) {
@@ -73,6 +80,8 @@ func (q *Queries) SaveRestaurantOutboxMessage(ctx context.Context, arg SaveResta
 		arg.Name,
 		arg.Subject,
 		arg.Data,
+		arg.Metadata,
+		arg.SentAt,
 	)
 	var id string
 	err := row.Scan(&id)

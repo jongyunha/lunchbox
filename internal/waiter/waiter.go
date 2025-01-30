@@ -10,18 +10,21 @@ import (
 )
 
 type WaitFunc func(ctx context.Context) error
+type CleanupFunc func()
 
 type Waiter interface {
 	Add(fns ...WaitFunc)
 	Wait() error
+	Cleanup(fns ...CleanupFunc)
 	Context() context.Context
 	CancelFunc() context.CancelFunc
 }
 
 type waiter struct {
-	ctx    context.Context
-	fns    []WaitFunc
-	cancel context.CancelFunc
+	ctx          context.Context
+	waitFuncs    []WaitFunc
+	cleanupFuncs []CleanupFunc
+	cancel       context.CancelFunc
 }
 
 type waiterCfg struct {
@@ -40,7 +43,7 @@ func New(options ...WaiterOption) Waiter {
 	}
 
 	w := &waiter{
-		fns: []WaitFunc{},
+		waitFuncs: []WaitFunc{},
 	}
 	w.ctx, w.cancel = context.WithCancel(cfg.parentCtx)
 	if cfg.catchSignals {
@@ -51,10 +54,10 @@ func New(options ...WaiterOption) Waiter {
 }
 
 func (w *waiter) Add(fns ...WaitFunc) {
-	w.fns = append(w.fns, fns...)
+	w.waitFuncs = append(w.waitFuncs, fns...)
 }
 
-func (w waiter) Wait() (err error) {
+func (w *waiter) Wait() (err error) {
 	g, ctx := errgroup.WithContext(w.ctx)
 
 	g.Go(func() error {
@@ -63,12 +66,21 @@ func (w waiter) Wait() (err error) {
 		return nil
 	})
 
-	for _, fn := range w.fns {
-		fn := fn
-		g.Go(func() error { return fn(ctx) })
+	for _, fn := range w.waitFuncs {
+		waitFunc := fn
+		g.Go(func() error { return waitFunc(ctx) })
+	}
+
+	for _, fn := range w.cleanupFuncs {
+		cleanupFunc := fn
+		defer cleanupFunc()
 	}
 
 	return g.Wait()
+}
+
+func (w *waiter) Cleanup(fns ...CleanupFunc) {
+	w.cleanupFuncs = append(w.cleanupFuncs, fns...)
 }
 
 func (w waiter) Context() context.Context {

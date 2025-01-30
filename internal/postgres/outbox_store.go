@@ -2,10 +2,13 @@ package postgres
 
 import (
 	"context"
+	"encoding/json"
+	"time"
 
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jongyunha/lunchbox/internal/am"
+	"github.com/jongyunha/lunchbox/internal/ddd"
 	"github.com/jongyunha/lunchbox/internal/tm"
 	"github.com/stackus/errors"
 )
@@ -15,14 +18,16 @@ type OutboxStore struct {
 }
 
 type outboxMessage struct {
-	id      string
-	name    string
-	subject string
-	data    []byte
+	id       string
+	name     string
+	subject  string
+	data     []byte
+	metadata ddd.Metadata
+	sentAt   time.Time
 }
 
-var _ tm.OutBoxStore = (*OutboxStore)(nil)
-var _ am.RawMessage = (*outboxMessage)(nil)
+var _ tm.OutboxStore = (*OutboxStore)(nil)
+var _ am.Message = (*outboxMessage)(nil)
 
 func NewOutboxStore(db DBTX) OutboxStore {
 	return OutboxStore{
@@ -30,14 +35,20 @@ func NewOutboxStore(db DBTX) OutboxStore {
 	}
 }
 
-func (o OutboxStore) Save(ctx context.Context, msg am.RawMessage) error {
-	param := SaveRestaurantOutboxMessageParams{
-		ID:      msg.ID(),
-		Name:    msg.MessageName(),
-		Subject: msg.Subject(),
-		Data:    msg.Data(),
+func (o OutboxStore) Save(ctx context.Context, msg am.Message) error {
+	metadata, err := json.Marshal(msg.Metadata())
+	if err != nil {
+		return err
 	}
-	_, err := o.queries.SaveRestaurantOutboxMessage(ctx, param)
+	param := SaveRestaurantOutboxMessageParams{
+		ID:       msg.ID(),
+		Name:     msg.MessageName(),
+		Subject:  msg.Subject(),
+		Data:     msg.Data(),
+		Metadata: metadata,
+		SentAt:   msg.SentAt(),
+	}
+	_, err = o.queries.SaveRestaurantOutboxMessage(ctx, param)
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
@@ -50,19 +61,26 @@ func (o OutboxStore) Save(ctx context.Context, msg am.RawMessage) error {
 	return err
 }
 
-func (o OutboxStore) FindUnpublished(ctx context.Context, limit int) ([]am.RawMessage, error) {
+func (o OutboxStore) FindUnpublished(ctx context.Context, limit int) ([]am.Message, error) {
 	rows, err := o.queries.FindRestaurantUnpublishedOutboxMessages(ctx, int32(limit))
 	if err != nil {
 		return nil, err
 	}
 
-	messages := make([]am.RawMessage, len(rows))
+	messages := make([]am.Message, len(rows))
 	for i, row := range rows {
+		var metadata ddd.Metadata
+		err = json.Unmarshal(row.Metadata, &metadata)
+		if err != nil {
+			return nil, err
+		}
 		outbox := outboxMessage{
-			id:      row.ID,
-			name:    row.Name,
-			subject: row.Subject,
-			data:    row.Data,
+			id:       row.ID,
+			name:     row.Name,
+			subject:  row.Subject,
+			data:     row.Data,
+			metadata: metadata,
+			sentAt:   row.SentAt,
 		}
 		messages[i] = outbox
 	}
@@ -88,4 +106,12 @@ func (r outboxMessage) Data() []byte {
 
 func (r outboxMessage) ID() string {
 	return r.id
+}
+
+func (r outboxMessage) Metadata() ddd.Metadata {
+	return r.metadata
+}
+
+func (r outboxMessage) SentAt() time.Time {
+	return r.sentAt
 }

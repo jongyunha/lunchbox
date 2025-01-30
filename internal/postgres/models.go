@@ -25,6 +25,8 @@ type RestaurantsInbox struct {
 	Name       string    `json:"name"`
 	Subject    string    `json:"subject"`
 	Data       []byte    `json:"data"`
+	Metadata   []byte    `json:"metadata"`
+	SentAt     time.Time `json:"sent_at"`
 	ReceivedAt time.Time `json:"received_at"`
 }
 
@@ -33,6 +35,8 @@ type RestaurantsOutbox struct {
 	Name        string             `json:"name"`
 	Subject     string             `json:"subject"`
 	Data        []byte             `json:"data"`
+	Metadata    []byte             `json:"metadata"`
+	SentAt      time.Time          `json:"sent_at"`
 	PublishedAt pgtype.Timestamptz `json:"published_at"`
 }
 

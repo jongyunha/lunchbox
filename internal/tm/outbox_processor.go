@@ -9,18 +9,18 @@ import (
 
 const OutboxProcessorContainerKey = "container.outbox_processor"
 const messageLimit = 50
-const pollingInterval = 500 * time.Millisecond
+const pollingInterval = 333 * time.Millisecond
 
 type OutboxProcessor interface {
 	Start(ctx context.Context) error
 }
 
 type outboxProcessor struct {
-	publisher am.RawMessagePublisher
-	store     OutBoxStore
+	publisher am.MessagePublisher
+	store     OutboxStore
 }
 
-func NewOutboxProcessor(publisher am.RawMessagePublisher, store OutBoxStore) OutboxProcessor {
+func NewOutboxProcessor(publisher am.MessagePublisher, store OutboxStore) OutboxProcessor {
 	return outboxProcessor{
 		publisher: publisher,
 		store:     store,
@@ -59,14 +59,25 @@ func (p outboxProcessor) processMessages(ctx context.Context) error {
 					return err
 				}
 			}
-
 			err = p.store.MarkPublished(ctx, ids...)
 			if err != nil {
 				return err
 			}
+
+			// poll again immediately
+			continue
 		}
 
+		if !timer.Stop() {
+			select {
+			case <-timer.C:
+			default:
+			}
+		}
+
+		// wait a short time before polling again
 		timer.Reset(pollingInterval)
+
 		select {
 		case <-ctx.Done():
 			return nil
