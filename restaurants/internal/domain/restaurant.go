@@ -19,9 +19,9 @@ type Restaurant struct {
 	Name string
 }
 
-func (r Restaurant) ApplyEvent(event ddd.Event) error {
+func (r *Restaurant) ApplyEvent(event ddd.Event) error {
 	switch payload := event.Payload().(type) {
-	case RestaurantRegistered:
+	case *RestaurantRegistered:
 		r.Name = payload.Name
 	default:
 		return errors.ErrInternal.Msgf("%T received the event %s with unexpected payload %T", r, event.EventName(), payload)
@@ -30,23 +30,17 @@ func (r Restaurant) ApplyEvent(event ddd.Event) error {
 	return nil
 }
 
-func RegisterRestaurant(id, name string) (*Restaurant, error) {
+func (r *Restaurant) InitRestaurant(id, name string) (ddd.Event, error) {
 	if name == "" {
 		return nil, ErrRestaurantNameIsBlank
 	}
-	restaurant := NewRestaurant(id)
+	//restaurant := NewRestaurant(id)
 
-	restaurant.AddEvent(RestaurantRegisteredEvent, RestaurantRegistered{
+	r.AddEvent(RestaurantRegisteredEvent, &RestaurantRegistered{
 		Name: name,
 	})
 
-	return restaurant, nil
-}
-
-func NewRestaurant(id string) *Restaurant {
-	return &Restaurant{
-		Aggregate: es.NewAggregate(id, RestaurantAggregate),
-	}
+	return ddd.NewEvent(RestaurantRegisteredEvent, r), nil
 }
 
 func (Restaurant) Key() string {

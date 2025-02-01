@@ -3,6 +3,7 @@ package commands
 import (
 	"context"
 
+	"github.com/jongyunha/lunchbox/internal/ddd"
 	"github.com/jongyunha/lunchbox/restaurants/internal/domain"
 )
 
@@ -14,20 +15,32 @@ type (
 
 	RegisterRestaurantHandler struct {
 		restaurants domain.RestaurantRepository
+		publisher   ddd.EventPublisher[ddd.Event]
 	}
 )
 
-func NewRegisterRestaurantHandler(restaurants domain.RestaurantRepository) RegisterRestaurantHandler {
+func NewRegisterRestaurantHandler(restaurants domain.RestaurantRepository, publisher ddd.EventPublisher[ddd.Event]) RegisterRestaurantHandler {
 	return RegisterRestaurantHandler{
 		restaurants: restaurants,
+		publisher:   publisher,
 	}
 }
 
 func (h RegisterRestaurantHandler) RegisterRestaurant(ctx context.Context, cmd RegisterRestaurant) error {
-	restaurant, err := domain.RegisterRestaurant(cmd.ID, cmd.Name)
+	restaurant, err := h.restaurants.Load(ctx, cmd.ID)
 	if err != nil {
 		return err
 	}
 
-	return h.restaurants.Save(ctx, restaurant)
+	event, err := restaurant.InitRestaurant(cmd.ID, cmd.Name)
+	if err != nil {
+		return err
+	}
+
+	err = h.restaurants.Save(ctx, restaurant)
+	if err != nil {
+		return err
+	}
+
+	return h.publisher.Publish(ctx, event)
 }

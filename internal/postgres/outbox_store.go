@@ -29,13 +29,13 @@ type outboxMessage struct {
 var _ tm.OutboxStore = (*OutboxStore)(nil)
 var _ am.Message = (*outboxMessage)(nil)
 
-func NewOutboxStore(db DBTX) OutboxStore {
-	return OutboxStore{
+func NewOutboxStore(db DBTX) *OutboxStore {
+	return &OutboxStore{
 		queries: New(db),
 	}
 }
 
-func (o OutboxStore) Save(ctx context.Context, msg am.Message) error {
+func (o *OutboxStore) Save(ctx context.Context, msg am.Message) error {
 	metadata, err := json.Marshal(msg.Metadata())
 	if err != nil {
 		return err
@@ -61,7 +61,7 @@ func (o OutboxStore) Save(ctx context.Context, msg am.Message) error {
 	return err
 }
 
-func (o OutboxStore) FindUnpublished(ctx context.Context, limit int) ([]am.Message, error) {
+func (o *OutboxStore) FindUnpublished(ctx context.Context, limit int) ([]am.Message, error) {
 	rows, err := o.queries.FindRestaurantUnpublishedOutboxMessages(ctx, int32(limit))
 	if err != nil {
 		return nil, err
@@ -88,7 +88,7 @@ func (o OutboxStore) FindUnpublished(ctx context.Context, limit int) ([]am.Messa
 	return messages, nil
 }
 
-func (o OutboxStore) MarkPublished(ctx context.Context, ids ...string) error {
+func (o *OutboxStore) MarkPublished(ctx context.Context, ids ...string) error {
 	return o.queries.MarkRestaurantOutboxMessageAsPublishedByIDs(ctx, ids)
 }
 

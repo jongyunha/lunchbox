@@ -58,6 +58,7 @@ func (r AggregateRepository[T]) Save(ctx context.Context, aggregate T) error {
 
 	err := r.store.Save(ctx, aggregate)
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
 

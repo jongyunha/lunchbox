@@ -3,6 +3,7 @@ package application
 import (
 	"context"
 
+	"github.com/jongyunha/lunchbox/internal/ddd"
 	"github.com/jongyunha/lunchbox/restaurants/internal/application/commands"
 	"github.com/jongyunha/lunchbox/restaurants/internal/domain"
 )
@@ -37,10 +38,11 @@ var _ App = (*Application)(nil)
 
 func New(
 	restaurants domain.RestaurantRepository,
+	publisher ddd.EventPublisher[ddd.Event],
 ) *Application {
 	return &Application{
 		appCommands: appCommands{
-			RegisterRestaurantHandler: commands.NewRegisterRestaurantHandler(restaurants),
+			RegisterRestaurantHandler: commands.NewRegisterRestaurantHandler(restaurants, publisher),
 		},
 	}
 }

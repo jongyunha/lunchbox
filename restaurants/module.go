@@ -12,7 +12,6 @@ import (
 	"github.com/jongyunha/lunchbox/internal/di"
 	"github.com/jongyunha/lunchbox/internal/es"
 	"github.com/jongyunha/lunchbox/internal/jetstream"
-	"github.com/jongyunha/lunchbox/internal/logger"
 	pg "github.com/jongyunha/lunchbox/internal/postgres"
 	"github.com/jongyunha/lunchbox/internal/postgresotel"
 	"github.com/jongyunha/lunchbox/internal/registry"
@@ -50,9 +49,6 @@ func Root(ctx context.Context, svc system.Service) (err error) {
 		}
 		return reg, nil
 	})
-	container.AddSingleton(logger.ContainerKey, func(c di.Container) (any, error) {
-		return svc.Logger(), nil
-	})
 
 	stream := jetstream.NewStream(svc.Config().Nats.Stream, svc.JS(), svc.Logger())
 
@@ -60,7 +56,7 @@ func Root(ctx context.Context, svc system.Service) (err error) {
 		return ddd.NewEventDispatcher[ddd.Event](), nil
 	})
 
-	container.AddSingleton(constants.DatabaseTransactionKey, func(c di.Container) (any, error) {
+	container.AddScoped(constants.DatabaseTransactionKey, func(c di.Container) (any, error) {
 		return svc.DB().Begin(context.Background())
 	})
 	sentCounter := amprom.SentMessagesCounter(constants.ServiceName)
@@ -83,7 +79,7 @@ func Root(ctx context.Context, svc system.Service) (err error) {
 		), nil
 	})
 
-	container.AddSingleton(constants.EventPublisherKey, func(c di.Container) (any, error) {
+	container.AddScoped(constants.EventPublisherKey, func(c di.Container) (any, error) {
 		return am.NewEventPublisher(
 			c.Get(constants.RegistryKey).(registry.Registry),
 			c.Get(constants.MessagePublisherKey).(am.MessagePublisher),
@@ -91,12 +87,12 @@ func Root(ctx context.Context, svc system.Service) (err error) {
 	})
 
 	container.AddScoped(constants.InboxRestaurantKey, func(c di.Container) (any, error) {
-		tx := postgresotel.Trace(c.Get(constants.DatabaseTransactionKey).(pgx.Tx))
+		tx := postgresotel.Trace(c.Get(constants.DatabaseTransactionKey).(*pgxpool.Tx))
 		return pg.NewInboxStore(tx), nil
 	})
 
 	container.AddScoped(constants.AggregateStoreKey, func(c di.Container) (any, error) {
-		tx := c.Get(constants.DatabaseTransactionKey).(*pgxpool.Tx)
+		tx := postgresotel.Trace(c.Get(constants.DatabaseTransactionKey).(*pgxpool.Tx))
 		reg := c.Get(constants.RegistryKey).(registry.Registry)
 		return es.AggregateStoreWithMiddleware(
 			pg.NewEventStore(constants.ServiceName+".events", tx, reg),
@@ -113,12 +109,16 @@ func Root(ctx context.Context, svc system.Service) (err error) {
 	})
 
 	container.AddScoped(constants.MallRepoKey, func(c di.Container) (any, error) {
-		tx := c.Get(constants.DatabaseTransactionKey).(*pgxpool.Tx)
-		return postgres.NewMallRepository(tx), nil
+		return postgres.NewMallRepository(
+			postgresotel.Trace(c.Get(constants.DatabaseTransactionKey).(*pgxpool.Tx)),
+		), nil
 	})
 
 	container.AddScoped(constants.ApplicationKey, func(c di.Container) (any, error) {
-		return application.New(c.Get(constants.RestaurantsRepoKey).(es.AggregateRepository[*domain.Restaurant])), nil
+		return application.New(
+			c.Get(constants.RestaurantsRepoKey).(es.AggregateRepository[*domain.Restaurant]),
+			c.Get(constants.DomainDispatcherKey).(ddd.EventPublisher[ddd.Event]),
+		), nil
 	})
 
 	container.AddScoped(constants.MallHandlersKey, func(c di.Container) (any, error) {
@@ -134,7 +134,7 @@ func Root(ctx context.Context, svc system.Service) (err error) {
 	)
 
 	// setup Driver adapters
-	if err = grpc.RegisterServerTx(container, svc.RPC()); err != nil {
+	if err = grpc.RegisterServerTx(container, svc.RPC(), svc.Logger()); err != nil {
 		return err
 	}
 	if err = rest.RegisterGateway(ctx, svc.Mux(), svc.Config().Rpc.Address()); err != nil {

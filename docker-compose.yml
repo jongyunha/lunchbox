@@ -28,7 +28,50 @@ services:
       - 'jsdata:/var/lib/nats/data'
     networks:
       - lunchbox
-
+  collector:
+    container_name: collector
+    hostname: collector
+    image: otel/opentelemetry-collector-contrib:0.60.0
+    command: [
+      "--config=/etc/otel-config.yml",
+    ]
+    volumes:
+      - ./docker/otel/otel-config.yml:/etc/otel-config.yml
+    ports:
+      - "1888:1888"   # pprof extension
+      - "8888:8888"   # Prometheus metrics exposed by the collector
+      - "8889:8889"   # Prometheus exporter metrics
+      - "13133:13133" # health_check extension
+      - "4317:4317"   # OTLP gRPC receiver
+      - "4318:4318"   # OTLP http receiver
+    #      - "55679:55679" # zpages extension
+  jaeger:
+    container_name: jaeger
+    hostname: jaeger
+    image: jaegertracing/all-in-one:1
+    ports:
+      - "8081:16686"
+      - "14250"
+  prometheus:
+    container_name: prometheus
+    hostname: prometheus
+    image: prom/prometheus:v2.37.1
+    command: [
+      "--config.file=/etc/prometheus/prometheus-config.yml",
+    ]
+    volumes:
+      - ./docker/prometheus/prometheus-config.yml:/etc/prometheus/prometheus-config.yml
+    ports:
+      - "9090:9090"
+  grafana:
+    container_name: grafana
+    hostname: grafana
+    image: grafana/grafana:9.0.9
+    volumes:
+      - ./docker/grafana/grafana.ini:/etc/grafana/grafana.ini
+      - ./docker/grafana/provisioning/:/etc/grafana/provisioning/
+    ports:
+      - "3000:3000"
 
 volumes:
   pgdata:

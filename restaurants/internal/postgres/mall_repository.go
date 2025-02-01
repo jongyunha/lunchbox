@@ -13,17 +13,19 @@ type MallRepository struct {
 
 var _ domain.MallRepository = (*MallRepository)(nil)
 
-func NewMallRepository(db postgres.DBTX) MallRepository {
-	return MallRepository{
+func NewMallRepository(db postgres.DBTX) *MallRepository {
+	return &MallRepository{
 		queries: postgres.New(db),
 	}
 }
 
 func (m MallRepository) RegisterRestaurant(ctx context.Context, restaurantID, name string) error {
-	return m.queries.SaveRestaurant(ctx, postgres.SaveRestaurantParams{
+	err := m.queries.SaveRestaurant(ctx, postgres.SaveRestaurantParams{
 		ID:   restaurantID,
 		Name: name,
 	})
+
+	return err
 }
 
 func (m MallRepository) FindByID(ctx context.Context, restaurantID string) (*domain.MallRestaurant, error) {

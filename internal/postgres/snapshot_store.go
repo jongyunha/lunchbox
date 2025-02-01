@@ -20,7 +20,7 @@ type SnapshotStore struct {
 var _ es.AggregateStore = (*SnapshotStore)(nil)
 
 func NewSnapshotStore(tableName string, db DBTX, registry registry.Registry) es.AggregateStoreMiddleware {
-	snapshots := SnapshotStore{
+	snapshots := &SnapshotStore{
 		queries:   New(db),
 		registry:  registry,
 		tableName: tableName,
@@ -32,7 +32,7 @@ func NewSnapshotStore(tableName string, db DBTX, registry registry.Registry) es.
 	}
 }
 
-func (s SnapshotStore) Load(ctx context.Context, aggregate es.EventSourcedAggregate) error {
+func (s *SnapshotStore) Load(ctx context.Context, aggregate es.EventSourcedAggregate) error {
 	params := LoadSnapshotParams{
 		StreamID:   aggregate.ID(),
 		StreamName: aggregate.AggregateName(),
@@ -66,7 +66,7 @@ func (s SnapshotStore) Load(ctx context.Context, aggregate es.EventSourcedAggreg
 	return s.AggregateStore.Load(ctx, aggregate)
 }
 
-func (s SnapshotStore) Save(ctx context.Context, aggregate es.EventSourcedAggregate) error {
+func (s *SnapshotStore) Save(ctx context.Context, aggregate es.EventSourcedAggregate) error {
 	if err := s.AggregateStore.Save(ctx, aggregate); err != nil {
 		return err
 	}
@@ -104,7 +104,7 @@ func (s SnapshotStore) Save(ctx context.Context, aggregate es.EventSourcedAggreg
 }
 
 // TODO use injected & configurable strategies
-func (SnapshotStore) shouldSnapshot(aggregate es.EventSourcedAggregate) bool {
+func (*SnapshotStore) shouldSnapshot(aggregate es.EventSourcedAggregate) bool {
 	var maxChanges = 3 // low for demonstration; production envs should use higher values 50, 75, 100...
 	var pendingVersion = aggregate.PendingVersion()
 	var pendingChanges = len(aggregate.Events())
